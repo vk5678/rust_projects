@@ -24,15 +24,15 @@ This Groovy script appends PDF split XML content (ZEINV_PDF segments) to an exis
 ### Example
 
 #### Input - Message Body (PDF Split XML):
+Note: The PDF split XML doesn't need a root element. The script automatically handles this.
+
 ```xml
-<ROOT>
-  <ZEINV_PDF SEGMENT="1">
-    <FILE>Constant</FILE>
-  </ZEINV_PDF>
-  <ZEINV_PDF SEGMENT="2">
-    <FILE>Constant</FILE>
-  </ZEINV_PDF>
-</ROOT>
+<ZEINV_PDF SEGMENT="1">
+  <FILE>Constant</FILE>
+</ZEINV_PDF>
+<ZEINV_PDF SEGMENT="2">
+  <FILE>Constant</FILE>
+</ZEINV_PDF>
 ```
 
 #### Input - Property Settings:
@@ -95,6 +95,7 @@ Use a **Content Modifier** before the Groovy Script step:
 ## Features
 - Simple and efficient - no complex calculations
 - Streaming approach using `java.io.Reader` for PDF split XML
+- Automatically handles PDF split XML without root element
 - Handles multiple ZEINV_PDF segments with SEGMENT attribute
 - Default segment name (E1EDK01) with override capability
 - Clear error messages if segment not found

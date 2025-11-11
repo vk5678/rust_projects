@@ -15,8 +15,12 @@ def Message processData(Message message) {
     // Get target segment name from property (default to E1EDK01)
     def targetSegment = message.getProperty("targetSegment") ?: "E1EDK01"
 
-    // Parse the PDF split XML using Reader (streaming approach)
-    def pdfSplitXml = new XmlSlurper().parse(pdfSplitReader)
+    // Read PDF split content and wrap in root element (PDF split has no root element)
+    def pdfSplitContent = pdfSplitReader.text
+    def wrappedPdfSplit = "<root>${pdfSplitContent}</root>"
+
+    // Parse the PDF split XML with temporary root wrapper
+    def pdfSplitXml = new XmlSlurper().parseText(wrappedPdfSplit)
 
     // Parse the IDoc XML from property
     def idocXml = new XmlSlurper().parseText(idocXmlString)
