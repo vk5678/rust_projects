@@ -20,8 +20,8 @@ def Message processData(Message message) {
     def pdfSplitContent = pdfSplitReader.text
     def wrappedPdfSplit = "<root>${pdfSplitContent}</root>"
 
-    // Parse PDF split XML with temporary root wrapper
-    def pdfSplitXml = new XmlSlurper().parseText(wrappedPdfSplit)
+    // Parse PDF split XML with temporary root wrapper using StringReader
+    def pdfSplitXml = new XmlSlurper().parse(new StringReader(wrappedPdfSplit))
 
     // Parse IDoc XML from property
     def idocXml = new XmlSlurper().parseText(idocXmlString)
