@@ -66,6 +66,7 @@ You can set properties using:
 
 ## Features
 - Simple and efficient - no complex calculations
+- Streaming approach using `java.io.Reader` for better memory efficiency
 - Default segment name (E1EDK01) with override capability
 - Clear error messages if segment not found
 - Handles multiple child nodes in the XML to append
@@ -77,6 +78,7 @@ You can set properties using:
 - Clear error messages for troubleshooting
 
 ## Performance
+- Uses `java.io.Reader` for streaming input (avoids loading entire IDoc as String)
+- Efficient for large IDoc files with minimal memory footprint
 - Uses XmlSlurper for efficient XML parsing
 - Direct node appending without unnecessary iterations
-- Minimal memory footprint

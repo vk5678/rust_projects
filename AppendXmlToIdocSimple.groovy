@@ -3,8 +3,8 @@ import groovy.xml.XmlUtil
 
 def Message processData(Message message) {
 
-    // Get the IDoc XML from message body
-    def idocBody = message.getBody(String.class)
+    // Get the IDoc XML from message body using Reader (streaming)
+    def reader = message.getBody(java.io.Reader.class)
 
     // Get target segment name from property (default to E1EDK01)
     def targetSegment = message.getProperty("targetSegment") ?: "E1EDK01"
@@ -16,10 +16,11 @@ def Message processData(Message message) {
         throw new Exception("Property 'xmlToAppend' is required")
     }
 
-    // Parse XMLs
-    def idocXml = new XmlSlurper().parseText(idocBody)
+    // Parse IDoc XML using Reader (streaming approach)
+    def idocXml = new XmlSlurper().parse(reader)
     idocXml.setProperty("keepIgnorableWhitespace", false)
 
+    // Parse XML content to append
     def contentToAppend = new XmlSlurper().parseText(xmlToAppend)
 
     // Find the target segment

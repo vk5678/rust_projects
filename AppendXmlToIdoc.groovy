@@ -2,8 +2,8 @@ import com.sap.gateway.ip.core.customdev.util.Message
 
 def Message processData(Message message) {
 
-    // Get the IDoc XML from message body
-    def body = message.getBody(String.class)
+    // Get the IDoc XML from message body using Reader (streaming)
+    def reader = message.getBody(java.io.Reader.class)
 
     // Get target segment name from property (default to E1EDK01)
     def targetSegment = message.getProperty("targetSegment") ?: "E1EDK01"
@@ -15,8 +15,8 @@ def Message processData(Message message) {
         throw new Exception("Property 'xmlToAppend' is required but not found")
     }
 
-    // Parse the IDoc XML
-    def idocXml = new XmlSlurper().parseText(body)
+    // Parse the IDoc XML using Reader (streaming approach)
+    def idocXml = new XmlSlurper().parse(reader)
 
     // Find the target segment and append the XML content
     def targetNode = idocXml.'**'.find { it.name() == targetSegment }
