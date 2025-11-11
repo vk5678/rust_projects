@@ -3,26 +3,31 @@ import groovy.xml.XmlUtil
 
 def Message processData(Message message) {
 
-    // Get the IDoc XML from message body
-    def idocBody = message.getBody(String.class)
+    // Get the PDF split XML from message body using Reader (streaming)
+    def pdfSplitReader = message.getBody(java.io.Reader.class)
+
+    // Get IDoc XML from property
+    def idocXmlString = message.getProperty("idocXml")
+
+    if (!idocXmlString) {
+        throw new Exception("Property 'idocXml' is required")
+    }
 
     // Get target segment name from property (default to E1EDK01)
     def targetSegment = message.getProperty("targetSegment") ?: "E1EDK01"
 
-    // Get XML content to append from property
-    def xmlToAppend = message.getProperty("xmlToAppend")
+    // Read PDF split content and wrap in root element (PDF split has no root element)
+    def pdfSplitContent = pdfSplitReader.text
+    def wrappedPdfSplit = "<root>${pdfSplitContent}</root>"
 
-    if (!xmlToAppend) {
-        throw new Exception("Property 'xmlToAppend' is required")
-    }
+    // Parse PDF split XML with temporary root wrapper
+    def pdfSplitXml = new XmlSlurper().parseText(wrappedPdfSplit)
 
-    // Parse XMLs
-    def idocXml = new XmlSlurper().parseText(idocBody)
+    // Parse IDoc XML from property
+    def idocXml = new XmlSlurper().parseText(idocXmlString)
     idocXml.setProperty("keepIgnorableWhitespace", false)
 
-    def contentToAppend = new XmlSlurper().parseText(xmlToAppend)
-
-    // Find the target segment
+    // Find the target segment in IDoc
     def targetNode = idocXml.depthFirst().find { node ->
         node.name() == targetSegment
     }
@@ -31,8 +36,8 @@ def Message processData(Message message) {
         throw new Exception("Segment '${targetSegment}' not found in IDoc")
     }
 
-    // Append each child node from the content to the target segment
-    contentToAppend.children().each { child ->
+    // Append each ZEINV_PDF segment to the target segment
+    pdfSplitXml.children().each { child ->
         targetNode.appendNode(child)
     }
 
