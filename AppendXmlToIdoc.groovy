@@ -2,34 +2,36 @@ import com.sap.gateway.ip.core.customdev.util.Message
 
 def Message processData(Message message) {
 
-    // Get the IDoc XML from message body using Reader (streaming)
-    def reader = message.getBody(java.io.Reader.class)
+    // Get the PDF split XML from message body using Reader (streaming)
+    def pdfSplitReader = message.getBody(java.io.Reader.class)
+
+    // Get IDoc XML from property
+    def idocXmlString = message.getProperty("idocXml")
+
+    if (!idocXmlString) {
+        throw new Exception("Property 'idocXml' is required but not found")
+    }
 
     // Get target segment name from property (default to E1EDK01)
     def targetSegment = message.getProperty("targetSegment") ?: "E1EDK01"
 
-    // Get XML content to append from property
-    def xmlToAppend = message.getProperty("xmlToAppend")
+    // Parse the PDF split XML using Reader (streaming approach)
+    def pdfSplitXml = new XmlSlurper().parse(pdfSplitReader)
 
-    if (!xmlToAppend) {
-        throw new Exception("Property 'xmlToAppend' is required but not found")
-    }
+    // Parse the IDoc XML from property
+    def idocXml = new XmlSlurper().parseText(idocXmlString)
 
-    // Parse the IDoc XML using Reader (streaming approach)
-    def idocXml = new XmlSlurper().parse(reader)
-
-    // Find the target segment and append the XML content
+    // Find the target segment and append the PDF split content
     def targetNode = idocXml.'**'.find { it.name() == targetSegment }
 
     if (!targetNode) {
         throw new Exception("Target segment '${targetSegment}' not found in IDoc")
     }
 
-    // Parse the XML content to append
-    def appendXml = new XmlSlurper().parseText(xmlToAppend)
-
-    // Append the XML content to target segment
-    targetNode.appendNode(appendXml)
+    // Append each ZEINV_PDF segment to target segment
+    pdfSplitXml.children().each { child ->
+        targetNode.appendNode(child)
+    }
 
     // Convert back to XML string
     def result = groovy.xml.XmlUtil.serialize(idocXml)
